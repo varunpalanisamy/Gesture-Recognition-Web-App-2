@@ -75,6 +75,7 @@
             const context = canvas.getContext('2d');
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
             const base64Image = canvas.toDataURL('image/png').split(',')[1];
+            console.log("Captured image data:", base64Image);  // Debugging statement
             const data = { image: base64Image };
 
             fetch('/predict', {
@@ -84,16 +85,26 @@
                 },
                 body: JSON.stringify(data)
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log("Response status:", response.status);  // Debugging statement
+                return response.json();
+            })
             .then(data => {
-                document.getElementById('message').innerText = "Successfully captured image!";
-                document.getElementById('prediction').innerText = `Predicted Gesture: ${data.gesture}`;
+                if (data.error) {
+                    console.error("Error response:", data.error);  // Debugging statement
+                    document.getElementById('message').innerText = "Error capturing image.";
+                } else {
+                    console.log("Prediction result:", data);  // Debugging statement
+                    document.getElementById('message').innerText = "Successfully captured image!";
+                    document.getElementById('prediction').innerText = `Predicted Gesture: ${data.gesture}`;
+                }
             })
             .catch(error => {
-                console.error('Error:', error);
+                console.error('Fetch error:', error);  // Debugging statement
                 document.getElementById('message').innerText = "Error capturing image.";
             });
         }
     </script>
+
 </body>
 </html>
