@@ -1,6 +1,6 @@
 Flask
-torch==2.3.1 -f https://download.pytorch.org/whl/torch_stable.html
-torchvision==0.18.1 -f https://download.pytorch.org/whl/torch_stable.html
+http://download.pytorch.org/whl/cpu/torch-2.3.1+cpu-cp312-cp312-manylinux1_x86_64.whl
+http://download.pytorch.org/whl/cpu/torchvision-0.18.1+cpu-cp312-cp312-manylinux1_x86_64.whl
 Pillow
 opencv-python-headless
 gunicorn
