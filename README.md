@@ -1,6 +1,6 @@
 # Gesture Recognition Web App
 
-This project implements a gesture recognition system using a pre-trained ResNeXt50 model, integrated into a Flask web application. The application utilizes webcam input to capture images and predict gestures.
+This project implements a gesture recognition system using a pre-trained model, integrated into a Flask web application. The application utilizes webcam input to capture images and predict gestures.
 
 ![Gesture Recognition Web App](screenshot.png)
 
@@ -27,9 +27,10 @@ This project provides a simple interface to recognize hand gestures using a webc
 ## Technologies Used
 
 - **Flask**: A micro web framework for Python.
-- **PyTorch**: An open-source machine learning library used for training and inference of the model.
-- **OpenCV**: For handling image capture and processing (if used).
-- **PIL**: Python Imaging Library to handle image transformations.
+- **TensorFlow**: An open-source machine learning library used for training and inference of the model.
+- **OpenCV**: For handling image capture and processing.
+- **MediaPipe**: A framework for building multimodal applied machine learning pipelines.
+- **NumPy**: Fundamental package for scientific computing in Python.
 
 ## Getting Started
 
@@ -47,8 +48,9 @@ Make sure you have the following installed:
 1. Clone this repository:
 
    ```bash
-   git clone https://github.com/varunpalanisamy/Gesture-Recognition-Web-App.git
-   cd Gesture-Recognition-Web-App
+   git clone https://github.com/varunpalanisamy/Gesture-Recognition-Web-App-2.git
+   cd Gesture-Recognition-Web-App-2
+
 
 2. Create a virtual environment (optional but recommended):
 
@@ -59,11 +61,6 @@ Make sure you have the following installed:
 
    ```bash
    pip install -r requirements.txt
-   
-4. Download the pre-trained model weights and save them as resnext50.pth in the Gesture-Recognition-Web-App directory.
-Download here: https://drive.google.com/file/d/16cwCjHddpO75W7O3XYQmDygB149iPIhP/view?usp=sharing
-
-
 
 ### Running the Application
 
@@ -76,13 +73,10 @@ Download here: https://drive.google.com/file/d/16cwCjHddpO75W7O3XYQmDygB149iPIhP
 
 ## Usage
 1. Click the Start Webcam button to begin capturing video.
-2. Position your hand in front of the camera and click Capture Image to predict the gesture.
+2. Position your hand in front of the camera to predict the gesture.
 3. The predicted gesture will be displayed on the screen.
 
 ## Credits
-This project uses the HaGRID (HAnd Gesture Recognition Image Dataset) for training and testing the gesture recognition model. For more information, please visit the HaGRID GitHub repository.
-
-HaGRID provides a large dataset of 554,800 FullHD RGB images divided into 18 gesture classes, which is essential for building robust hand gesture recognition systems.
-
+This project uses a pre-trained model from KelvinPuyam/Hand-Gesture-Recognition for real-time hand gesture recognition.
 ## License
 This project is licensed under the MIT License. See the LICENSE file for details.# Gesture-Recognition-Web-App
