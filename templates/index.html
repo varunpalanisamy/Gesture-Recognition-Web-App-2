@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gesture Recognition</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #ADD8E6;
+        }
+        .container {
+            text-align: center;
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        button {
+            padding: 0.5rem 1rem;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #message {
+            margin-top: 1rem;
+            color: green;
+        }
+        #prediction {
+            margin-top: 1rem;
+            font-weight: bold;
+            font-size: 2rem;
+            color: #007BFF;
+        }
+        .video-container {
+            width: 640px;
+            margin: 0 auto;
+            margin-bottom: 20px;
+        }
+        .video-feed {
+            width: 100%;
+            height: auto;
+            border: 2px solid #333;
+            border-radius: 8px;
+        }
+    </style>
+    <script>
+        async function fetchGesture() {
+            const response = await fetch('/get_gesture');
+            const data = await response.json();
+            document.getElementById('prediction').textContent = data.gesture;
+        }
+        setInterval(fetchGesture, 1000);
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Gesture Recognition</h1>
+        <div class="video-container">
+            <img class="video-feed" id="videoFeed" src="{{ url_for('video_feed') }}" alt="Video Feed">
+        </div>
+        <p id="message"></p>
+        <p id="prediction"></p>
+    </div>
+</body>
+</html>

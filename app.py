@@ -1,71 +1,81 @@
-from flask import Flask, request, jsonify, render_template
-import base64
-from PIL import Image
-import io
-import torch
-from torchvision import models, transforms
+from flask import Flask, render_template, Response, send_from_directory, jsonify
+import cv2
+import numpy as np
+import mediapipe as mp
+from tensorflow.keras.models import load_model
+import threading
 
-model = models.resnet18(pretrained=False)
-model.fc = torch.nn.Linear(model.fc.in_features, 18)
+app = Flask(__name__)
 
-# Load the state dictionary for the model
-checkpoint = torch.load('ResNet18.pth', map_location=torch.device('cpu'))
-model.load_state_dict(checkpoint['MODEL_STATE'])
-model.eval()  # Set the model to evaluation mode
+# Initialize MediaPipe
+mpHands = mp.solutions.hands
+hands = mpHands.Hands(max_num_hands=1, min_detection_confidence=0.7)
+mpDraw = mp.solutions.drawing_utils
 
-# Define the image transformations for preprocessing
-transform = transforms.Compose([
-    transforms.Resize((224, 224)),
-    transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-])
+# Load the gesture recognizer model
+model = load_model('mp_hand_gesture')
 
-app = Flask(__name__, template_folder='.')  # Initialize Flask app
+# Load class names
+with open('gesture.names', 'r') as f:
+    classNames = f.read().split('\n')
 
+# Global variable to store the current gesture
+current_gesture = ""
+
+def generate_frames():
+    global current_gesture
+    cap = cv2.VideoCapture(0)
+    while True:
+        success, frame = cap.read()
+        if not success:
+            break
+        else:
+            x, y, _ = frame.shape
+            frame = cv2.flip(frame, 1)
+            framergb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            result = hands.process(framergb)
+            className = ''
+            if result.multi_hand_landmarks:
+                landmarks = []
+                for handslms in result.multi_hand_landmarks:
+                    for lm in handslms.landmark:
+                        lmx = int(lm.x * x)
+                        lmy = int(lm.y * y)
+                        landmarks.append([lmx, lmy])
+                    mpDraw.draw_landmarks(frame, handslms, mpHands.HAND_CONNECTIONS)
+                    prediction = model.predict([landmarks])
+                    classID = np.argmax(prediction)
+                    className = classNames[classID]
+            current_gesture = className
+            ret, buffer = cv2.imencode('.jpg', frame)
+            frame = buffer.tobytes()
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+
+def update_gesture():
+    while True:
+        if current_gesture:
+            app.logger.info(f"Current Gesture: {current_gesture}")
 
 @app.route('/')
 def index():
-    return render_template('index.html')  # Render the main HTML page
+    return render_template('index.html')
 
+@app.route('/video_feed')
+def video_feed():
+    return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
-@app.route('/predict', methods=['POST'])
-def predict():
-    try:
-        data = request.json  # Get JSON data from the request
-        print("Received data:", data)  # Debugging statement
-        image_data = base64.b64decode(data['image'])  # Decode the base64 image data
-        image = Image.open(io.BytesIO(image_data))  # Open the image using PIL
+@app.route('/get_gesture')
+def get_gesture():
+    return jsonify(gesture=current_gesture)
 
-        # Convert image to RGB if it's in RGBA format
-        if image.mode == 'RGBA':
-            image = image.convert('RGB')
+# Route for serving the favicon
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(directory=app.root_path, path='favicon.ico', mimetype='image/vnd.microsoft.icon')
 
-        # Apply transformations to the image
-        image = transform(image).unsqueeze(0)
-
-        # Predict the gesture using the model
-        with torch.no_grad():
-            output = model(image)
-            _, predicted = torch.max(output, 1)
-            prediction = predicted.item()
-
-        # Mapping of gesture classes to their names
-        gesture_map = {0: "call", 1: "dislike", 2: "fist", 3: "four", 4: "like",
-                       5: "mute", 6: "ok", 7: "one", 8: "palm", 9: "peace",
-                       10: "peace_inverted", 11: "rock", 12: "stop",
-                       13: "stop_inverted", 14: "three", 15: "three2",
-                       16: "two_up", 17: "two_up_inverted"}
-
-        predicted_gesture = gesture_map.get(prediction, "Unknown gesture")  # Get gesture name
-
-        print("Predicted gesture:", predicted_gesture)  # Debugging statement
-
-        return jsonify({'gesture': predicted_gesture})  # Return predicted gesture as JSON
-    except Exception as e:
-        print("Error during prediction:", e)  # Debugging statement
-        return jsonify({'error': str(e)}), 500  # Return error as JSON
-
-
-
-if __name__ == '__main__':
-    app.run(debug=True)  # Run the Flask app in debug mode
+if __name__ == "__main__":
+    gesture_thread = threading.Thread(target=update_gesture)
+    gesture_thread.daemon = True
+    gesture_thread.start()
+    app.run(debug=True)
