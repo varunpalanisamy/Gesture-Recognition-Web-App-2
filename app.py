@@ -4,6 +4,7 @@ import numpy as np
 import mediapipe as mp
 from tensorflow.keras.models import load_model
 import threading
+import os
 
 app = Flask(__name__)
 
@@ -75,7 +76,5 @@ def favicon():
     return send_from_directory(directory=app.root_path, path='favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 if __name__ == "__main__":
-    gesture_thread = threading.Thread(target=update_gesture)
-    gesture_thread.daemon = True
-    gesture_thread.start()
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=True)
