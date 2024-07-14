@@ -5,7 +5,6 @@ import mediapipe as mp
 from tensorflow.keras.models import load_model
 import threading
 import os
-import tensorflow as tf
 
 app = Flask(__name__)
 
@@ -14,11 +13,8 @@ mpHands = mp.solutions.hands
 hands = mpHands.Hands(max_num_hands=1, min_detection_confidence=0.7)
 mpDraw = mp.solutions.drawing_utils
 
-model_directory = 'mp_hand_gesture'
 # Load the gesture recognizer model
-# model = load_model('mp_hand_gesture')
-model = tf.keras.models.load_model(model_directory)
-
+model = load_model('mp_hand_gesture')
 
 # Load class names
 with open('gesture.names', 'r') as f:
@@ -80,5 +76,5 @@ def favicon():
     return send_from_directory(directory=app.root_path, path='favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT", 5001))
     app.run(host="0.0.0.0", port=port, debug=True)
