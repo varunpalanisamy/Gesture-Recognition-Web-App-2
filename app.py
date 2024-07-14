@@ -5,6 +5,7 @@ import mediapipe as mp
 from tensorflow.keras.models import load_model
 import threading
 import os
+import tensorflow as tf
 
 app = Flask(__name__)
 
@@ -13,8 +14,11 @@ mpHands = mp.solutions.hands
 hands = mpHands.Hands(max_num_hands=1, min_detection_confidence=0.7)
 mpDraw = mp.solutions.drawing_utils
 
+model_directory = 'mp_hand_gesture'
 # Load the gesture recognizer model
-model = load_model('mp_hand_gesture')
+# model = load_model('mp_hand_gesture')
+model = tf.keras.models.load_model(model_directory)
+
 
 # Load class names
 with open('gesture.names', 'r') as f:
